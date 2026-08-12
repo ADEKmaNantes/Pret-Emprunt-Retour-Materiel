@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registre de prêt matériel — Adekma Ouest</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg:#eef1f2;
+    --surface:#ffffff;
+    --ink:#1c2733;
+    --ink-soft:#5b6b7a;
+    --accent:#f8a82b;
+    --accent-soft:#fdf0d9;
+    --ok:#2f6f4e;
+    --ok-soft:#e6f2ec;
+    --warn:#ce3632;
+    --warn-soft:#fae1e0;
+    --info:#2c6e9e;
+    --info-soft:#e2edf4;
+    --info:#2563a8;
+    --info-soft:#e2ecf5;
+    --border:#dde3e7;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--accent);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    padding:0 0 60px;
+  }
+  header{
+    background:var(--accent);
+    color:var(--ink);
+    padding:18px 24px 20px;
+    border-bottom:5px solid var(--ink);
+    display:flex;
+    align-items:center;
+    gap:18px;
+    flex-wrap:wrap;
+    position:relative;
+  }
+  header img{
+    height:52px;
+    width:auto;
+    display:block;
+  }
+  #logo-btn{
+    background:none;
+    border:none;
+    padding:0;
+    margin:0;
+    cursor:pointer;
+    border-radius:8px;
+    line-height:0;
+  }
+  #logo-btn:hover, #logo-btn:focus-visible{
+    outline:2px solid var(--ink);
+    outline-offset:3px;
+  }
+  .logo-wrap{position:relative;}
+  .logo-menu{
+    position:absolute;
+    top:64px;
+    left:0;
+    z-index:20;
+    background:var(--surface);
+    border:2px solid var(--ink);
+    border-radius:10px;
+    padding:6px;
+    min-width:220px;
+    box-shadow:0 8px 20px rgba(0,0,0,.18);
+  }
+  .logo-menu button{
+    display:block;
+    width:100%;
+    text-align:left;
+    background:none;
+    border:none;
+    padding:10px 12px;
+    font-size:13.5px;
+    font-weight:700;
+    color:var(--ink);
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .logo-menu button:hover{background:var(--accent-soft);}
+  .agency-menu{
+    position:absolute;
+    top:74px;
+    left:24px;
+    z-index:20;
+    background:var(--surface);
+    color:var(--ink);
+    border:2px solid var(--ink);
+    border-radius:12px;
+    padding:8px;
+    width:240px;
+    max-width:calc(100vw - 48px);
+    box-shadow:0 8px 20px rgba(0,0,0,.18);
+  }
+  .agency-menu button{
+    display:block;
+    width:100%;
+    text-align:left;
+    background:none;
+    border:none;
+    padding:10px 12px;
+    font-size:14px;
+    font-weight:700;
+    color:var(--ink);
+    border-radius:7px;
+    cursor:pointer;
+  }
+  .agency-menu button:hover{background:var(--accent-soft);}
+  .agency-row{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-bottom:6px;
+  }
+  .agency-row input{
+    flex:1;
+    padding:6px 8px;
+    font-size:13px;
+  }
+  .agency-row button{
+    padding:5px 8px;
+    font-size:12px;
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--warn);
+  }
+  .agency-row button:hover{background:var(--warn-soft);}
+  .agency-add{
+    display:flex;
+    gap:6px;
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px solid var(--border);
+  }
+  .agency-add input{
+    flex:1;
+    padding:7px 8px;
+    font-size:13px;
+  }
+  #agency-list-page .agency-row{
+    background:var(--accent-soft);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:8px 10px;
+  }
+  #agency-list-page .agency-row input{
+    font-size:14px;
+    background:#fff;
+  }
+  .op-toggle{
+    display:flex;
+    gap:10px;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+  }
+  .op-btn{
+    flex:1;
+    min-width:150px;
+    padding:14px;
+    font-size:14px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    background:var(--surface);
+    border:2px solid var(--ink);
+    border-radius:9px;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .op-btn:hover{background:var(--accent-soft);}
+  .op-btn.active{
+    background:var(--ink);
+    color:var(--accent);
+    border-color:var(--ink);
+  }
+  .op-placeholder{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13.5px;
+    padding:20px 10px;
+    margin:0;
+  }
+  .op-form{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+  }
+  .op-form[hidden]{display:none;}
+  #r-manual-fields{
+    display:contents;
+  }
+  #r-manual-fields[hidden]{display:none;}
+  .badge.type-pret{background:var(--ink); color:var(--accent);}
+  .badge.type-emprunt{background:var(--info); color:#fff;}
+  header .title-block{
+    display:flex;
+    flex-direction:column;
+  }
+  header .eyebrow{
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:#5c3f00;
+    font-weight:700;
+    margin:0 0 4px;
+  }
+  header h1{
+    margin:0;
+    font-size:22px;
+    font-weight:800;
+    letter-spacing:.01em;
+    text-transform:uppercase;
+  }
+  .wrap{
+    max-width:1080px;
+    margin:0 auto;
+    padding:20px 16px 0;
+  }
+  .stats{
+    display:flex;
+    gap:12px;
+    margin:-14px auto 20px;
+    max-width:1080px;
+    padding:0 16px;
+    flex-wrap:wrap;
+  }
+  .stat{
+    background:var(--accent-soft);
+    border:2px solid var(--ink);
+    border-radius:10px;
+    padding:12px 18px;
+    box-shadow:0 1px 2px rgba(28,39,51,.05);
+    flex:1;
+    min-width:140px;
+  }
+  .stat .num{
+    font-size:26px;
+    font-weight:800;
+    line-height:1;
+  }
+  .stat .label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--ink-soft);
+    font-weight:700;
+    margin-top:4px;
+  }
+  .stat.warn .num{color:var(--warn);}
+  .stat.ok .num{color:var(--ok);}
+  .stat.accent .num{color:var(--accent);}
+
+  .card{
+    background:var(--accent-soft);
+    border:2px solid var(--ink);
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:18px;
+    box-shadow:0 1px 2px rgba(28,39,51,.05);
+  }
+  .card h2{
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    margin:0 0 16px;
+    color:var(--ink-soft);
+    font-weight:800;
+    border-bottom:1px solid var(--border);
+    padding-bottom:10px;
+  }
+  form{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+  }
+  label{
+    display:flex;
+    flex-direction:column;
+    font-size:12px;
+    font-weight:700;
+    color:var(--ink-soft);
+    gap:6px;
+  }
+  input, select{
+    font:inherit;
+    padding:9px 10px;
+    border:1px solid var(--border);
+    border-radius:7px;
+    background:#fff;
+    color:var(--ink);
+  }
+  input:focus, select:focus{
+    outline:2px solid var(--accent);
+    outline-offset:1px;
+  }
+  .form-actions{
+    grid-column:1/-1;
+    display:flex;
+    justify-content:flex-end;
+    margin-top:4px;
+  }
+  button{
+    font:inherit;
+    font-weight:700;
+    border:none;
+    border-radius:7px;
+    padding:10px 18px;
+    cursor:pointer;
+  }
+  .btn-primary{
+    background:var(--accent);
+    color:#fff;
+  }
+  .btn-primary:hover{background:#c97800;}
+  .btn-secondary{
+    background:var(--accent);
+    color:var(--ink);
+    border:2px solid var(--ink);
+  }
+  .btn-secondary:hover{background:#c97800;}
+  .btn-ghost{
+    background:transparent;
+    color:var(--ink-soft);
+    border:1px solid var(--border);
+    padding:6px 10px;
+    font-size:12px;
+  }
+  .btn-ghost:hover{border-color:var(--ink-soft); color:var(--ink);}
+  .btn-danger{
+    background:transparent;
+    color:var(--warn);
+    border:1px solid var(--warn-soft);
+    padding:6px 10px;
+    font-size:12px;
+  }
+  .btn-danger:hover{background:var(--warn-soft);}
+
+  .toolbar{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .toolbar .filters{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .toolbar input[type="search"]{min-width:200px;}
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13.5px;
+  }
+  thead th{
+    text-align:left;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink);
+    padding:8px 10px;
+    background:var(--accent);
+    border-bottom:2px solid var(--ink);
+  }
+  thead th:first-child{border-top-left-radius:6px;}
+  thead th:last-child{border-top-right-radius:6px;}
+  tbody tr{
+    background:var(--surface);
+    border-left:4px solid transparent;
+    border-bottom:1px solid var(--border);
+  }
+  tbody tr.overdue{border-left-color:var(--warn); background:var(--warn-soft);}
+  tbody tr.soon{border-left-color:var(--accent);}
+  tbody tr.done{border-left-color:var(--ok); opacity:.7;}
+  tbody td{
+    padding:9px 10px;
+    vertical-align:middle;
+  }
+  .badge{
+    display:inline-block;
+    font-size:11px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    padding:3px 8px;
+    border-radius:5px;
+  }
+  .badge.encours{background:var(--accent); color:var(--ink);}
+  .badge.retard{background:var(--warn); color:#fff;}
+  .badge.retourne{background:var(--ok-soft); color:var(--ok);}
+  .row-actions{display:flex; gap:6px;}
+  .empty{
+    padding:30px 10px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13px;
+  }
+  .footer-note{
+    font-size:12px;
+    color:var(--ink-soft);
+    text-align:center;
+    margin-top:10px;
+  }
+  @media (max-width:640px){
+    table, thead, tbody, tr, th, td{display:block;}
+    thead{display:none;}
+    tbody tr{margin-bottom:10px; border:1px solid var(--border); border-left-width:4px; border-radius:8px; padding:8px;}
+    tbody td{border:none; padding:4px 6px;}
+    tbody td::before{
+      content:attr(data-label);
+      font-weight:700;
+      font-size:10.5px;
+      text-transform:uppercase;
+      color:var(--ink-soft);
+      display:block;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <button id="logo-btn" type="button" aria-haspopup="true" aria-expanded="false" title="Menu">
+      <img src="data:image/png;base64,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" alt="Adekma Levage">
+    </button>
+    <div class="logo-menu" id="logo-menu" hidden>
+      <button type="button" id="logo-menu-agences">Base de données des agences</button>
+    </div>
+  </div>
+  <div class="title-block">
+    <p class="eyebrow">Adekma Ouest</p>
+    <h1>Registre de prêt matériel</h1>
+  </div>
+</header>
+
+<div class="stats" id="stats"></div>
+
+<div class="wrap" id="main-view">
+
+  <div class="card">
+    <h2>Nouvelle opération</h2>
+    <div class="op-toggle">
+      <button type="button" class="op-btn" id="op-btn-pret" data-op="pret">Enregistrer un prêt</button>
+      <button type="button" class="op-btn" id="op-btn-emprunt" data-op="emprunt">Enregistrer un emprunt</button>
+      <button type="button" class="op-btn" id="op-btn-retour" data-op="retour">Enregistrer un retour</button>
+    </div>
+
+    <p class="op-placeholder" id="op-placeholder">Choisis une opération ci-dessus pour commencer.</p>
+
+    <form id="form-mouvement" class="op-form" hidden>
+      <label>Matériel
+        <input type="text" id="f-materiel" placeholder="Ex: Palonnier 5T" required>
+      </label>
+      <label><span id="label-agence">Agence destinataire</span>
+        <select id="f-agence" required>
+          <option value="" disabled selected>Sélectionner une agence…</option>
+        </select>
+      </label>
+      <label><span id="label-date-mouvement">Date de sortie</span>
+        <input type="date" id="f-date-mouvement" required>
+      </label>
+      <label>Récupéré ou livré par
+        <input type="text" id="f-responsable" placeholder="Nom de la personne" required>
+      </label>
+      <label>Retour prévu
+        <input type="date" id="f-date-retour-prevue" required>
+      </label>
+      <div class="form-actions" style="justify-content:space-between; align-items:center;">
+        <label style="flex-direction:row; align-items:center; gap:8px; font-weight:600;">
+          <input type="checkbox" id="f-date-inconnue" style="width:auto;">
+          <span>Date de retour inconnue</span>
+        </label>
+        <button type="submit" class="btn-primary" id="btn-submit-mouvement">Enregistrer le prêt</button>
+      </div>
+    </form>
+
+    <form id="form-retour" class="op-form" hidden>
+      <label style="grid-column:1/-1;">Matériel concerné
+        <select id="r-entry" required>
+          <option value="" disabled selected>Sélectionner un mouvement en cours…</option>
+        </select>
+      </label>
+
+      <div id="r-manual-fields" hidden>
+        <label>Matériel
+          <input type="text" id="r-materiel" placeholder="Ex: Palonnier 5T">
+        </label>
+        <label>Type de mouvement
+          <select id="r-type">
+            <option value="pret">Prêt (notre matériel)</option>
+            <option value="emprunt">Emprunt (matériel d'une autre agence)</option>
+          </select>
+        </label>
+        <label><span id="r-label-agence">Agence concernée</span>
+          <select id="r-agence">
+            <option value="" disabled selected>Sélectionner une agence…</option>
+          </select>
+        </label>
+        <label>Récupéré ou livré par
+          <input type="text" id="r-responsable" placeholder="Nom de la personne">
+        </label>
+      </div>
+
+      <label>Date de retour
+        <input type="date" id="r-date-retour" required>
+      </label>
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Enregistrer le retour</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Matériel en circulation</h2>
+    <div class="toolbar">
+      <input type="search" id="search" placeholder="Rechercher (matériel, agence, responsable)…">
+      <div class="filters">
+        <select id="filter-type">
+          <option value="all">Prêts et emprunts</option>
+          <option value="pret">Prêts seulement</option>
+          <option value="emprunt">Emprunts seulement</option>
+        </select>
+        <select id="filter-status">
+          <option value="all">Tous les statuts</option>
+          <option value="encours">En cours</option>
+          <option value="retard">En retard</option>
+          <option value="retourne">Retourné</option>
+        </select>
+        <button class="btn-ghost" id="btn-refresh" style="border-color:var(--ink);">Actualiser</button>
+        <button class="btn-secondary" id="btn-export">Télécharger en Excel</button>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Matériel</th>
+          <th>Agence</th>
+          <th>Date</th>
+          <th>Récupéré / Livré par</th>
+          <th>Retour prévu</th>
+          <th>Statut</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+    <div class="empty" id="empty-msg" style="display:none;">Aucune sortie enregistrée pour le moment.</div>
+  </div>
+
+  <p class="footer-note" id="footer-note">Données synchronisées via Google Sheets — visibles par tous les utilisateurs du registre.</p>
+</div>
+
+<div class="wrap" id="agencies-view" hidden>
+  <div class="card">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+      <h2 style="margin:0; border:none; padding:0;">Gestion des agences destinataires</h2>
+      <button type="button" class="btn-secondary" id="btn-back-to-main">← Retour au registre</button>
+    </div>
+    <div id="agency-list-page"></div>
+    <div class="agency-add" style="margin-top:16px;">
+      <input type="text" id="agency-new-name-page" placeholder="Nouvelle agence…">
+      <button type="button" id="agency-add-btn-page" class="btn-primary" style="padding:8px 14px;">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==== CONFIGURATION ====
+// Laisse tel quel pour un usage local uniquement (données sur cet appareil).
+// Quand tu es prêt à partager les données entre plusieurs personnes, colle ici
+// l'URL de ton déploiement Google Apps Script (se termine par /exec) : le
+// registre basculera automatiquement en mode partagé, aucune autre modification requise.
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-o9wwQl0fOfYMdHlvzDxeOdMCEX2OcoRxm-zwd41tA0Mj9rX-EUdwJHa7hYiGA0w_dw/exec";
+const AUTO_REFRESH_SECONDS = 20;
+const STORAGE_KEY = 'sorties-materiel';
+const AGENCIES_KEY = 'agences-destinataires';
+const DEFAULT_AGENCIES = [
+  'L2M 44 - Trignac',
+  'L2M 56 - St Abraham',
+  'Adekma 35 - Bréce',
+  'Adekma 53 - Entramme',
+  'Adekma 72 - Le Mans',
+  'Adekma 37 - Pacay-Meslay',
+  'Adekma 41 - Blois',
+  'Adekma 45 - Orléans',
+  'Adekma 18 - GMC - Bourges'
+];
+let agences = [];
+
+function loadAgencies(){
+  try{
+    const raw = localStorage.getItem(AGENCIES_KEY);
+    agences = raw ? JSON.parse(raw) : [...DEFAULT_AGENCIES];
+  }catch(e){
+    agences = [...DEFAULT_AGENCIES];
+  }
+}
+function saveAgencies(){
+  try{
+    localStorage.setItem(AGENCIES_KEY, JSON.stringify(agences));
+  }catch(e){
+    console.error('Erreur de sauvegarde des agences', e);
+  }
+}
+function renderAgencySelect(){
+  const select = document.getElementById('f-agence');
+  const current = select.value;
+  select.innerHTML = '<option value="" disabled>Sélectionner une agence…</option>';
+  agences.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+  if(agences.includes(current)){
+    select.value = current;
+  }else{
+    select.querySelector('option').selected = true;
+  }
+  renderReturnAgencySelect();
+}
+
+function renderReturnAgencySelect(){
+  const select = document.getElementById('r-agence');
+  if(!select) return;
+  const current = select.value;
+  select.innerHTML = '<option value="" disabled>Sélectionner une agence…</option>';
+  agences.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+  if(agences.includes(current)) select.value = current;
+}
+function renderAgencyListPage(){
+  const list = document.getElementById('agency-list-page');
+  list.innerHTML = '';
+  agences.forEach((name, idx) => {
+    const row = document.createElement('div');
+    row.className = 'agency-row';
+    row.innerHTML = `<input type="text" value="${escapeHtml(name)}"><button type="button" title="Supprimer">✕ Supprimer</button>`;
+    const input = row.querySelector('input');
+    input.addEventListener('change', () => {
+      const newName = input.value.trim();
+      if(!newName) { input.value = agences[idx]; return; }
+      agences[idx] = newName;
+      saveAgencies();
+      renderAgencySelect();
+    });
+    row.querySelector('button').addEventListener('click', () => {
+      if(!confirm(`Supprimer "${agences[idx]}" de la liste ?`)) return;
+      agences.splice(idx, 1);
+      saveAgencies();
+      renderAgencyListPage();
+      renderAgencySelect();
+    });
+    list.appendChild(row);
+  });
+}
+
+function showMainView(){
+  document.getElementById('main-view').hidden = false;
+  document.getElementById('stats').hidden = false;
+  document.getElementById('agencies-view').hidden = true;
+}
+function showAgenciesView(){
+  document.getElementById('main-view').hidden = true;
+  document.getElementById('stats').hidden = true;
+  document.getElementById('agencies-view').hidden = false;
+  renderAgencyListPage();
+}
+
+document.getElementById('logo-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const menu = document.getElementById('logo-menu');
+  menu.hidden = !menu.hidden;
+});
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('logo-menu');
+  if(!menu.hidden && !menu.contains(e.target) && !document.getElementById('logo-btn').contains(e.target)){
+    menu.hidden = true;
+  }
+});
+document.getElementById('logo-menu-agences').addEventListener('click', () => {
+  document.getElementById('logo-menu').hidden = true;
+  showAgenciesView();
+});
+document.getElementById('btn-back-to-main').addEventListener('click', showMainView);
+
+document.getElementById('agency-add-btn-page').addEventListener('click', () => {
+  const input = document.getElementById('agency-new-name-page');
+  const name = input.value.trim();
+  if(!name) return;
+  if(agences.includes(name)){ alert('Cette agence est déjà dans la liste.'); return; }
+  agences.push(name);
+  saveAgencies();
+  input.value = '';
+  renderAgencyListPage();
+  renderAgencySelect();
+});
+document.getElementById('agency-new-name-page').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('agency-add-btn-page').click(); }
+});
+
+// ---- Choix de l'opération : prêt, emprunt ou retour ----
+let currentMovementType = null;
+
+function setOperation(op){
+  const placeholder = document.getElementById('op-placeholder');
+  const formMouvement = document.getElementById('form-mouvement');
+  const formRetour = document.getElementById('form-retour');
+  document.getElementById('op-btn-pret').classList.toggle('active', op === 'pret');
+  document.getElementById('op-btn-emprunt').classList.toggle('active', op === 'emprunt');
+  document.getElementById('op-btn-retour').classList.toggle('active', op === 'retour');
+  placeholder.hidden = true;
+
+  if(op === 'pret' || op === 'emprunt'){
+    currentMovementType = op;
+    formMouvement.hidden = false;
+    formRetour.hidden = true;
+    if(op === 'pret'){
+      document.getElementById('label-agence').textContent = 'Agence destinataire';
+      document.getElementById('label-date-mouvement').textContent = 'Date de sortie';
+      document.getElementById('btn-submit-mouvement').textContent = 'Enregistrer le prêt';
+    }else{
+      document.getElementById('label-agence').textContent = 'Agence prêteuse';
+      document.getElementById('label-date-mouvement').textContent = "Date d'emprunt";
+      document.getElementById('btn-submit-mouvement').textContent = "Enregistrer l'emprunt";
+    }
+  }else if(op === 'retour'){
+    formMouvement.hidden = true;
+    formRetour.hidden = false;
+    renderReturnSelect();
+  }
+}
+document.getElementById('op-btn-pret').addEventListener('click', () => setOperation('pret'));
+document.getElementById('op-btn-emprunt').addEventListener('click', () => setOperation('emprunt'));
+document.getElementById('op-btn-retour').addEventListener('click', () => setOperation('retour'));
+
+function renderReturnSelect(){
+  const select = document.getElementById('r-entry');
+  select.innerHTML = '<option value="" disabled selected>Sélectionner un mouvement en cours…</option>';
+  const active = sorties.filter(s => statusOf(s) !== 'retourne');
+  active.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    const typeLabel = (s.type === 'emprunt') ? '[Emprunt]' : '[Prêt]';
+    const dateLabel = (s.type === 'emprunt') ? 'emprunté le' : 'sorti le';
+    const retourTxt = s.dateRetourPrevue ? `prévu le ${fmtDate(s.dateRetourPrevue)}` : 'retour inconnu';
+    opt.textContent = `${typeLabel} ${s.materiel} — ${s.agence} (${dateLabel} ${fmtDate(s.dateSortie)}, ${retourTxt})`;
+    select.appendChild(opt);
+  });
+  const autreOpt = document.createElement('option');
+  autreOpt.value = 'AUTRE';
+  autreOpt.textContent = '— Matériel non enregistré —';
+  select.appendChild(autreOpt);
+  document.getElementById('r-date-retour').value = todayISO();
+  document.getElementById('r-manual-fields').hidden = true;
+}
+
+document.getElementById('r-entry').addEventListener('change', (e) => {
+  const manual = document.getElementById('r-manual-fields');
+  manual.hidden = e.target.value !== 'AUTRE';
+});
+document.getElementById('r-type').addEventListener('change', (e) => {
+  document.getElementById('r-label-agence').textContent = e.target.value === 'emprunt' ? 'Agence prêteuse' : 'Agence destinataire';
+});
+
+document.getElementById('form-retour').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('r-entry').value;
+  const dateRetourEffective = document.getElementById('r-date-retour').value;
+  if(!id) return;
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+
+  if(id === 'AUTRE'){
+    const materiel = document.getElementById('r-materiel').value.trim();
+    const agence = document.getElementById('r-agence').value;
+    const type = document.getElementById('r-type').value;
+    const responsable = document.getElementById('r-responsable').value.trim();
+    if(!materiel || !agence){ alert('Renseigne au moins le matériel et l’agence.'); return; }
+    const entry = {
+      id: uid(), type, materiel, agence,
+      dateSortie: '', responsable,
+      dateRetourPrevue: '', dateRetourEffective
+    };
+
+    if(isConfigured()){
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enregistrement…';
+      const ok = await sendAction({action:'add', ...entry});
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Enregistrer le retour';
+      if(!ok) return;
+      await loadData(true);
+    }else{
+      sorties.push(entry);
+      saveLocal();
+      render();
+    }
+    e.target.reset();
+    document.getElementById('r-materiel').value = '';
+    document.getElementById('r-responsable').value = '';
+    renderReturnSelect();
+    return;
+  }
+
+  const s = sorties.find(x => x.id === id);
+  if(!s) return;
+
+  if(isConfigured()){
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enregistrement…';
+    const ok = await sendAction({action:'return', id, dateRetourEffective});
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Enregistrer le retour';
+    if(!ok) return;
+    s.dateRetourEffective = dateRetourEffective;
+    render();
+    await loadData(true);
+  }else{
+    s.dateRetourEffective = dateRetourEffective;
+    saveLocal();
+    render();
+  }
+  renderReturnSelect();
+});
+
+
+// ========================
+
+let sorties = [];
+let isSaving = false;
+
+function todayISO(){
+  return new Date().toISOString().slice(0,10);
+}
+function fmtDate(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function uid(){
+  return 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
+}
+function isConfigured(){
+  return SCRIPT_URL && SCRIPT_URL !== 'COLLE_TON_URL_ICI';
+}
+
+// ---- Stockage local (mode par défaut) ----
+function loadLocal(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    sorties = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    console.error('Erreur de lecture locale', e);
+    sorties = [];
+  }
+}
+function saveLocal(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sorties));
+    return true;
+  }catch(e){
+    console.error('Erreur de sauvegarde locale', e);
+    alert("La sauvegarde a échoué sur cet appareil.");
+    return false;
+  }
+}
+
+// ---- Chargement (local ou Google Sheets selon configuration) ----
+function jsonpRequest(params, timeoutMs){
+  return new Promise((resolve, reject) => {
+    const callbackName = 'jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random() * 1000000);
+    const query = new URLSearchParams({...params, callback: callbackName});
+    const script = document.createElement('script');
+    script.src = `${SCRIPT_URL}?${query.toString()}`;
+
+    const cleanup = () => {
+      delete window[callbackName];
+      script.remove();
+      clearTimeout(timer);
+    };
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('Délai dépassé'));
+    }, timeoutMs || 15000);
+
+    window[callbackName] = (data) => {
+      cleanup();
+      resolve(data);
+    };
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('Erreur réseau'));
+    };
+    document.body.appendChild(script);
+  });
+}
+
+async function loadData(silent){
+  if(!isConfigured()){
+    loadLocal();
+    render();
+    return;
+  }
+  if(!silent) setStatusMessage('Chargement…');
+  try{
+    const data = await jsonpRequest({});
+    sorties = data.map(row => ({
+      id: row.id,
+      type: row.type || 'pret',
+      materiel: row.materiel,
+      agence: row.agence,
+      dateSortie: row.dateSortie,
+      responsable: row.responsable,
+      dateRetourPrevue: row.dateRetourPrevue || null,
+      dateRetourEffective: row.dateRetourEffective || null
+    }));
+    setStatusMessage('');
+  }catch(e){
+    console.error('Erreur de chargement', e);
+    setStatusMessage("Impossible de charger les données. Vérifie la connexion ou l'URL du script.", true);
+  }
+  render();
+}
+
+function setStatusMessage(msg, isError){
+  const el = document.getElementById('footer-note');
+  if(!el) return;
+  if(msg){
+    el.textContent = msg;
+    el.style.color = isError ? 'var(--warn)' : 'var(--ink-soft)';
+  }else{
+    el.textContent = isConfigured()
+      ? 'Données synchronisées via Google Sheets — visibles par tous les utilisateurs du registre.'
+      : 'Données enregistrées sur cet appareil/navigateur. Pense à exporter en Excel régulièrement pour les partager ou les sauvegarder.';
+    el.style.color = 'var(--ink-soft)';
+  }
+}
+
+async function sendAction(params){
+  if(!isConfigured()){
+    return true; // le mode local sauvegarde directement via saveLocal()
+  }
+  isSaving = true;
+  try{
+    const data = await jsonpRequest(params);
+    if(!data.success) throw new Error(data.error || 'Erreur inconnue');
+    return true;
+  }catch(e){
+    console.error('Erreur d\'enregistrement', e);
+    alert("L'enregistrement a échoué. Vérifie ta connexion et réessaie.");
+    return false;
+  }finally{
+    isSaving = false;
+  }
+}
+
+function statusOf(s){
+  if(s.dateRetourEffective) return 'retourne';
+  if(!s.dateRetourPrevue) return 'encours';
+  const today = todayISO();
+  if(s.dateRetourPrevue < today) return 'retard';
+  return 'encours';
+}
+
+function render(){
+  const search = document.getElementById('search').value.trim().toLowerCase();
+  const filter = document.getElementById('filter-status').value;
+  const typeFilter = document.getElementById('filter-type').value;
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
+
+  let list = sorties.map(s => ({...s, type: s.type || 'pret', status: statusOf(s)}));
+
+  if(search){
+    list = list.filter(s =>
+      s.materiel.toLowerCase().includes(search) ||
+      s.agence.toLowerCase().includes(search) ||
+      s.responsable.toLowerCase().includes(search)
+    );
+  }
+  if(filter !== 'all'){
+    list = list.filter(s => s.status === filter);
+  }
+  if(typeFilter !== 'all'){
+    list = list.filter(s => s.type === typeFilter);
+  }
+
+  list.sort((a,b) => {
+    if(a.status !== b.status){
+      const order = {retard:0, encours:1, retourne:2};
+      return order[a.status] - order[b.status];
+    }
+    return (a.dateRetourPrevue || '9999-99-99').localeCompare(b.dateRetourPrevue || '9999-99-99');
+  });
+
+  document.getElementById('empty-msg').style.display = list.length ? 'none' : 'block';
+
+  for(const s of list){
+    const tr = document.createElement('tr');
+    tr.className = s.status === 'retard' ? 'overdue' : (s.status === 'retourne' ? 'done' : '');
+
+    const badgeClass = s.status === 'retard' ? 'retard' : (s.status === 'retourne' ? 'retourne' : 'encours');
+    const badgeText = s.status === 'retard' ? 'En retard' : (s.status === 'retourne' ? 'Retourné' : 'En cours');
+    const typeClass = s.type === 'emprunt' ? 'type-emprunt' : 'type-pret';
+    const typeText = s.type === 'emprunt' ? 'Emprunt' : 'Prêt';
+    const dateLabel = s.type === 'emprunt' ? "Date d'emprunt" : 'Date de sortie';
+
+    tr.innerHTML = `
+      <td data-label="Type"><span class="badge ${typeClass}">${typeText}</span></td>
+      <td data-label="Matériel">${escapeHtml(s.materiel)}</td>
+      <td data-label="Agence">${escapeHtml(s.agence)}</td>
+      <td data-label="${dateLabel}">${s.dateSortie ? fmtDate(s.dateSortie) : '—'}</td>
+      <td data-label="Récupéré / Livré par">${escapeHtml(s.responsable)}</td>
+      <td data-label="Retour prévu">${s.dateRetourPrevue ? fmtDate(s.dateRetourPrevue) : '<em style="color:var(--ink-soft); font-style:italic;">Inconnue</em>'}</td>
+      <td data-label="Statut"><span class="badge ${badgeClass}">${badgeText}</span></td>
+      <td data-label="Actions"><div class="row-actions"></div></td>
+    `;
+
+    const actionsCell = tr.querySelector('.row-actions');
+    if(s.status !== 'retourne'){
+      const btnReturn = document.createElement('button');
+      btnReturn.className = 'btn-ghost';
+      btnReturn.textContent = 'Marquer retourné';
+      btnReturn.onclick = () => markReturned(s.id);
+      actionsCell.appendChild(btnReturn);
+    }
+    const btnDelete = document.createElement('button');
+    btnDelete.className = 'btn-danger';
+    btnDelete.textContent = 'Supprimer';
+    btnDelete.onclick = () => deleteEntry(s.id);
+    actionsCell.appendChild(btnDelete);
+
+    tbody.appendChild(tr);
+  }
+
+  renderStats();
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function renderStats(){
+  const enCours = sorties.filter(s => statusOf(s) === 'encours').length;
+  const retard = sorties.filter(s => statusOf(s) === 'retard').length;
+  const retourne = sorties.filter(s => statusOf(s) === 'retourne').length;
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat accent"><div class="num">${enCours}</div><div class="label">En cours</div></div>
+    <div class="stat warn"><div class="num">${retard}</div><div class="label">En retard</div></div>
+    <div class="stat ok"><div class="num">${retourne}</div><div class="label">Retournés</div></div>
+  `;
+}
+
+async function markReturned(id){
+  const s = sorties.find(x => x.id === id);
+  if(!s) return;
+  const dateRetourEffective = todayISO();
+  if(isConfigured()){
+    const ok = await sendAction({action:'return', id, dateRetourEffective});
+    if(!ok) return;
+    s.dateRetourEffective = dateRetourEffective;
+    render();
+    loadData(true);
+  }else{
+    s.dateRetourEffective = dateRetourEffective;
+    saveLocal();
+    render();
+  }
+}
+
+async function deleteEntry(id){
+  if(!confirm('Supprimer définitivement cette ligne du registre ?')) return;
+  if(isConfigured()){
+    const ok = await sendAction({action:'delete', id});
+    if(!ok) return;
+    sorties = sorties.filter(x => x.id !== id);
+    render();
+    loadData(true);
+  }else{
+    sorties = sorties.filter(x => x.id !== id);
+    saveLocal();
+    render();
+  }
+}
+
+document.getElementById('f-date-inconnue').addEventListener('change', (e) => {
+  const dateField = document.getElementById('f-date-retour-prevue');
+  if(e.target.checked){
+    dateField.value = '';
+    dateField.required = false;
+    dateField.disabled = true;
+  }else{
+    dateField.required = true;
+    dateField.disabled = false;
+  }
+});
+
+document.getElementById('form-mouvement').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if(isSaving) return;
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  const type = currentMovementType || 'pret';
+  const entry = {
+    id: uid(),
+    type,
+    materiel: document.getElementById('f-materiel').value.trim(),
+    agence: document.getElementById('f-agence').value,
+    dateSortie: document.getElementById('f-date-mouvement').value,
+    responsable: document.getElementById('f-responsable').value.trim(),
+    dateRetourPrevue: document.getElementById('f-date-inconnue').checked ? '' : document.getElementById('f-date-retour-prevue').value,
+    dateRetourEffective: ''
+  };
+
+  let ok;
+  if(isConfigured()){
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enregistrement…';
+    ok = await sendAction({action:'add', ...entry});
+    submitBtn.disabled = false;
+    submitBtn.textContent = type === 'emprunt' ? "Enregistrer l'emprunt" : 'Enregistrer le prêt';
+  }else{
+    sorties.push({...entry, dateRetourPrevue: entry.dateRetourPrevue || null, dateRetourEffective: null});
+    ok = saveLocal();
+  }
+
+  if(ok){
+    e.target.reset();
+    document.getElementById('f-date-mouvement').value = todayISO();
+    document.getElementById('f-date-retour-prevue').disabled = false;
+    document.getElementById('f-date-retour-prevue').required = true;
+    if(isConfigured()) await loadData(true); else render();
+  }
+});
+
+document.getElementById('search').addEventListener('input', render);
+document.getElementById('filter-status').addEventListener('change', render);
+document.getElementById('filter-type').addEventListener('change', render);
+document.getElementById('btn-refresh').addEventListener('click', () => loadData());
+
+document.getElementById('btn-export').addEventListener('click', () => {
+  if(sorties.length === 0){
+    alert('Aucune donnée à exporter.');
+    return;
+  }
+  const rows = sorties.map(s => ({
+    'Type': (s.type === 'emprunt') ? 'Emprunt' : 'Prêt',
+    'Matériel': s.materiel,
+    'Agence': s.agence,
+    'Date': s.dateSortie ? fmtDate(s.dateSortie) : '',
+    'Récupéré / Livré par': s.responsable,
+    'Retour prévu': s.dateRetourPrevue ? fmtDate(s.dateRetourPrevue) : 'Inconnue',
+    'Retour effectif': s.dateRetourEffective ? fmtDate(s.dateRetourEffective) : '',
+    'Statut': statusOf(s) === 'retard' ? 'En retard' : (statusOf(s) === 'retourne' ? 'Retourné' : 'En cours')
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [{wch:10},{wch:22},{wch:20},{wch:13},{wch:18},{wch:13},{wch:13},{wch:12}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Sorties matériel');
+  const today = todayISO().split('-').reverse().join('');
+  XLSX.writeFile(wb, `Suivi_Materiel_${today}.xlsx`);
+});
+
+document.getElementById('f-date-mouvement').value = todayISO();
+loadAgencies();
+renderAgencySelect();
+renderReturnAgencySelect();
+setStatusMessage('');
+loadData();
+if(isConfigured() && AUTO_REFRESH_SECONDS > 0){
+  setInterval(() => loadData(true), AUTO_REFRESH_SECONDS * 1000);
+}
+</script>
+
+</body>
+</html>
